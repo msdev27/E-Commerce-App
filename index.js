@@ -1,10 +1,14 @@
-// console.log("Server is running on port: " + process.env.PORT);
-
 const express = require('express');
-const app = express();
 const userRepository = require('./repository/users.js');
+const cookieSession = require('cookie-session');
 const bodyParser = require('body-parser');
 
+const app = express();
+
+app.use(cookieSession({
+    keys: ['eu3na9fa2ci8cn0ri']
+}));
+app.use(bodyParser.urlencoded({extended: true}));
 // const bodyParser = (req, res, next) => {
 //     if (req.method === 'POST') {
 //         req.on('data', (data) => {
@@ -22,7 +26,7 @@ const bodyParser = require('body-parser');
 //     }
 // }
 
-app.get('/', (req, res) => {
+app.get('/signup', (req, res) => {
     console.log("get call");
     res.send(`
     <div>
@@ -36,7 +40,7 @@ app.get('/', (req, res) => {
     `);
 });
 
-app.post('/', bodyParser.urlencoded({ extended : true}), async (req, res) => {
+app.post('/signup', async (req, res) => {
     const {email, password, passwordConfirmation} = req.body;
     const existingUser = await userRepository.getOneBy({email: email});
 
@@ -47,8 +51,43 @@ app.post('/', bodyParser.urlencoded({ extended : true}), async (req, res) => {
     if (password !== passwordConfirmation) {
         return res.send('Passwords do not match!');
     }
-    await userRepository.create(req.body);
-    res.send(`In the post method`);
+    const newUser = await userRepository.create(req.body);
+    req.session.userId = newUser.id;
+    res.send(`Successfully signed up`);
+});
+
+app.get('/signin', (req, res) => {
+    res.send(`
+        <div>
+        <form method="POST">
+            <input type="email"  name="email" placeholder="Email"/>
+            <input type="password" name="password" placeholder="Password"/>
+            <button type="submit">Sign Up</button>
+        </form>
+    </div>
+    `)
+});
+
+app.post('/signin', async (req, res) => {
+    const {email, password} = req.body;
+    const existingUser = userRepository.getOneBy({email: email});
+    if (!existingUser) {
+        return res.send('User not found');
+    }
+
+    const passwordsMatch = await userRepository.comparePasswords(existingUser.password, password);
+
+    if (!passwordsMatch) {
+        return res.send('Passwords do not match!');
+    }
+
+    req.session.userId = existingUser.id;
+    res.send(`Successfully logged in`);
+});
+
+app.get('/signout', (req, res) => {
+    req.session = null;
+    res.send('User logged out');
 });
 
 app.listen(3000, () => {
