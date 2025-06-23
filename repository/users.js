@@ -86,12 +86,17 @@ class UsersRepository {
 
     async getOneBy(filters) {
         const records = await this.getAll();
+        // console.log(`records ${JSON.stringify(records)}`);
+        // console.log(`filters ${JSON.stringify(filters)}`);
         for (let record of records) {
+            // console.log(`record ${JSON.stringify(record)}`);
             if (!record) {
                 throw new Error('No users found');
             }
             let keyFound = true;
             for (let filter in filters) {
+                // console.log(`filters of filter ${filters[filter]}`);
+                // console.log(`record filter ${record[filter]}`);
                 if (filters[filter] !== record[filter]) {
                     keyFound = false;
                 }
