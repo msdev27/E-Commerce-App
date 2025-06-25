@@ -41,5 +41,10 @@ module.exports = {
             if (!passwordsMatch) {
                 throw new Error('Invalid Password!');
             }
-        })
+        }),
+    requireValidProductName: check('productName').trim().isLength({min:6, max:25})
+        .withMessage('Title length must be between 6 and 25'),
+    requireValidProductPrice: check('productPrice').trim().toFloat().isFloat()
+        .withMessage('Must be a valid number')
+
 }
