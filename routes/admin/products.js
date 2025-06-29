@@ -29,9 +29,9 @@ router.post('/admin/products/new',
     [ requireValidProductName, requireValidProductPrice],
     handleErrors(newProductTemplate),
     async (req, res) => {
-    const image = req.file.buffer.toString('base64');
+    const productImage = req.file.buffer.toString('base64');
     const { productName, productPrice } = req.body;
-    await productsRepo.create({ productName, productPrice, image});
+    await productsRepo.create({ productName, productPrice, productImage});
     res.redirect('/admin/products');
 });
 
